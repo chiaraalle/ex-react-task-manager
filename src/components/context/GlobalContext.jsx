@@ -3,7 +3,7 @@ import { createContext, useEffect, useState } from "react";
 
 export const GlobalContext = createContext();
 
-function GlobalContextProvider( {children} ){
+function GlobalProvider( {children} ){
 
 
     const [tasks, setTasks] = useState([]);
@@ -23,7 +23,6 @@ function GlobalContextProvider( {children} ){
                     throw new Error(`Errore! status: ${response.status}`);
                 }
                 const data = await response.json();
-                console.log('Dati ricevuti:', data);
                 setTasks(data);
             } catch (error) {
                 console.error('Errore nel recupero delle tasks:', error);
@@ -41,5 +40,5 @@ function GlobalContextProvider( {children} ){
 }
 
 
-export default GlobalContextProvider;
+export default GlobalProvider;
 
