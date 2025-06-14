@@ -9,7 +9,7 @@ function GlobalProvider( {children} ){
     const {tasks, addTask, removeTask, updateTask} = useTasks() //utilizzo custom Hook
    
     return (
-        <GlobalContext.Provider value={{tasks, addTask, removeTask, updateTask}}>
+        <GlobalContext.Provider value={{tasks, addTask, removeTask, updateTask}}> {/*si può fare le spread */}
             {children}
         </GlobalContext.Provider>
     )
