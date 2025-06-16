@@ -1,12 +1,15 @@
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useContext } from "react";
+import { GlobalContext } from "./context/GlobalContext"
 
  const symbols = "!@#$%^£&/*()-_=+[]{}|;:',.<>?/`~";
 
 
 function AddTask(){
 
+    const { addTask } = useContext(GlobalContext);
+
     //input non controllato
-    const [title, setTitle] = useState('');
+    const [title, setTitle] = useState("");
     //input controllato
     const descriptionRef = useRef();
     const statusRef = useRef();
@@ -16,33 +19,46 @@ function AddTask(){
         if (!title.trim()) return 'Il campo Nome della task non può essere vuoto!';
 
         if([...title].some(char => symbols.includes(char))) return 'Il nome della task non può contenere simboli'
-        return '';
+        
+        return "";
 
     }, [title])
 
-    const handleSubmit= (e) => {
+    const handleSubmit= async (e) => {
         e.preventDefault();
 
         const description = descriptionRef.current.value;
         const status = statusRef.current.value;
 
-        if ( !description || !status  || isTitleValid) {
+        console.log("Status value:", status)
+
+        if ( !description  || isTitleValid !== "" || !status) {
             alert('Per favore compila tutti i campi correttamente');
             return;
         }
-
-        console.log({
+    
+          const taskData = {
             title,
             description,
             status
-        });
+        };
+       
+        console.log(taskData)
 
-        // Reset del campo controllato
-        setTitle('');
+        try{
+            await addTask(taskData);
+            alert("task creata con successo!")
+            // Reset del campo controllato
+            setTitle('');
 
-        // Reset dei campi non controllati
-        descriptionRef.current.value = '';
-        statusRef.current.value = 'Todo'; 
+            // Reset dei campi non controllati
+            descriptionRef.current.value = "";
+            statusRef.current.value = "To do"; 
+        } catch(error){
+            alert(error.message);
+        }
+
+        
     };
 
 
@@ -59,11 +75,11 @@ function AddTask(){
             {title && isTitleValid &&  (
                 <p className="errorMess">
                 {isTitleValid}
-            </p>
+                </p>
             )}
             <textarea name="description" ref={descriptionRef} placeholder="Descrizione"></textarea>
-            <select name="stato" ref={statusRef} defaultValue="Todo">
-                <option value="Todo">To Do</option>
+            <select name="stato" ref={statusRef} defaultValue="To do">
+                <option value="To do">To Do</option>
                 <option value="Doing">Doing</option>
                 <option value="Done">Done</option>
             </select>
@@ -75,25 +91,3 @@ function AddTask(){
 
 export default AddTask;
 
-/*
-
-Aggiornare la pagina AddTask.jsx per contenere un form con i seguenti campi:
-
-Nome del task (title) → Input controllato (useState).
-Descrizione (description) → Textarea non controllata (useRef).
-Stato (status) → Select non controllata (useRef), 
-con opzioni "To do", "Doing", "Done", e valore predefinito "To do".
-
-Validare il campo Nome (title):
-
-Il campo non può essere vuoto.
-Non può contenere simboli speciali.
-Se il valore è errato, mostrare un messaggio di errore.
-Utilizzare una costante con i caratteri vietati:
-const symbols = "!@#$%^&*()-_=+[]{}|;:'\\",.<>?/`~";
-Gestione del Submit del Form:
-
-Al click del bottone "Aggiungi Task",
- il form deve SOLO stampare in console l’oggetto task con i valori inseriti 
- (NON deve ancora essere inviata la richiesta all’API).
-*/

@@ -22,10 +22,31 @@ function useTasks(){
         fetchTasks();
     }, [])
 
-    //funzione per aggiungere task
-    const addTask = () => {
+    //funzione per aggiungere task. Deve gestire: 
+    // una chiamata post, validare la risposta e aggiornare lo stato globale e gestire gli errori.
+    const addTask = async (taskData) => {
+        try {
+            const response = await fetch(import.meta.env.VITE_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(taskData)
+            });
 
-    }
+            const data = await response.json();
+
+            if (data.success) {
+                setTasks(prevTasks => [...prevTasks, data.task]);
+                return data; 
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            throw error; 
+        }
+    };
+
 
     //funzione per rimuovere task
     const removeTask = () => {
@@ -41,3 +62,7 @@ function useTasks(){
 }
 
 export default useTasks;
+
+/*
+
+*/
