@@ -48,10 +48,26 @@ function useTasks(){
     };
 
 
-    //funzione per rimuovere task
-    const removeTask = () => {
+    //funzione per rimuovere task. Deve gestire: 
+    // una chiamata DELETE, validare la risposta e aggiornare lo stato globale e gestire gli errori.
+    const removeTask = async (taskId) => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/${taskId}`, {
+                method: 'DELETE'
+            });
 
-    }
+            const data = await response.json();
+
+            if (data.success) {
+                setTasks(prevTasks =>  prevTasks.filter(task => task.id !== taskId));
+                return data; 
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            throw error; 
+        }
+    };
 
     //funzione per modificare task
     const updateTask = () => {
