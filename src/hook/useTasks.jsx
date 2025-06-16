@@ -62,7 +62,3 @@ function useTasks(){
 }
 
 export default useTasks;
-
-/*
-
-*/
