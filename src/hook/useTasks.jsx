@@ -70,9 +70,32 @@ function useTasks(){
     };
 
     //funzione per modificare task
-    const updateTask = () => {
+    const updateTask = async (updatedTask) => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/${updatedTask.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedTask)
+            });
 
-    }
+            const data = await response.json();
+
+            if (data.success) {
+                setTasks(prevTasks => 
+                    prevTasks.map(task => 
+                        task.id === updatedTask.id ? data.task : task
+                    )
+                );
+                return data; 
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            throw error; 
+        }
+    };
 
     return {tasks, addTask, removeTask, updateTask}
 }

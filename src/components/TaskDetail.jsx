@@ -3,13 +3,15 @@ import { useParams } from "react-router-dom";
 import { GlobalContext } from './context/GlobalContext';
 import { useNavigate } from 'react-router-dom';
 import Modal from './Modal';
+import EditTaskModal from "./EditTaskModal";
 
 function TaskDetail() {
     const { id } = useParams();
-    const { tasks, removeTask } = useContext(GlobalContext);
+    const { tasks, removeTask, updateTask } = useContext(GlobalContext);
     const navigate = useNavigate();
 
     const [show, setShow] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const currentTask = tasks.find(task => task.id === parseInt(id));
 
@@ -32,6 +34,17 @@ function TaskDetail() {
         } catch(error){
             alert(error.message);
         }
+    }
+
+    const handleUpdate = async (updatedTask) => {
+        console.log('questa task è stata Modificata: ', updatedTask)
+        try{
+            await updateTask(updatedTask);
+            alert("task modificata con successo!")
+            setShowEditModal(false); 
+        } catch(error){
+            alert(error.message);
+        }
 
     }
 
@@ -45,7 +58,11 @@ function TaskDetail() {
           <p><strong>Stato:</strong> {currentTask.status}</p>
           <p><strong>Data di creazione:</strong> {new Date(currentTask.createdAt).toLocaleDateString()}</p>
         </div>
-        <button className="deleteBtn" onClick={() => setShow(true)}>Elimina Task</button>
+        <div className="actionBtn">
+          <button className="deleteBtn" onClick={() => setShow(true)}>Elimina Task</button>
+          <button className="modifyBtn" onClick={() => setShowEditModal(true)}>Modifica Task</button>
+        </div>
+        
       </div>
       <Modal
         show={show}
@@ -56,6 +73,13 @@ function TaskDetail() {
           handleDelete();
         }}
         confirmText="Elimina"
+      />
+
+      <EditTaskModal 
+        task = {currentTask}
+        show={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSave={handleUpdate}
       />
     </>
     
