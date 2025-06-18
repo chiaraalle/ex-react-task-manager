@@ -1,13 +1,29 @@
 import TaskRow from "./TaskRow";
-import { useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { GlobalContext } from "./context/GlobalContext";
 import { FaArrowUp, FaArrowDown} from "react-icons/fa";
+
+//funzione di debounce
+function debounce(callback, delay){
+    let timer;
+    return (value) => {
+        clearTimeout(timer);
+        timer= setTimeout(() => {
+            callback(value)
+        }, delay)
+    }
+}
 
 function TaskList(){
     const { tasks } = useContext(GlobalContext);
 
     const [sortBy, setSortBy] = useState('createdAt')
     const [sortOrder, setSortOrder] = useState(1)
+
+    const [searchQuery, setSearchQuery] = useState('')
+    const debounceSetSearchQuery = useCallback(
+        debounce(setSearchQuery, 500)
+    , []);
 
     const handleSort = (field) => {
         if(sortBy === field){
@@ -24,73 +40,70 @@ function TaskList(){
         : <FaArrowDown className="sort-icon sort-icon-down" />;
     };
 
-    const sortedTask = useMemo(() => {
-      return [...tasks].sort((a, b) => {
-        let comparison = 0;
+    const sortedAndFilteredTask = useMemo(() => {
+        const filteredTasks = tasks.filter(task => 
+        task.title.toLowerCase().includes(searchQuery.toLowerCase())
+        );
 
-        if(sortBy === 'title'){
-            comparison = a.title.localeCompare(b.title);
-        } else if(sortBy === 'status'){
-            const statusOption = ["To do", "Doing", "Done"];
-            const indexA = statusOption.indexOf(a.status);
-            const indexB = statusOption.indexOf(b.status);
-            comparison = indexA - indexB;
-        } else if(sortBy === 'createdAt'){
-            const dateA= new Date(a.createdAt).getTime();
-            const dateB= new Date(b.createdAt).getTime();
-            comparison = dateA - dateB;
-        }
+        return [...filteredTasks].sort((a, b) => {
+            let comparison = 0;
 
-        return comparison * sortOrder
-      })
-    }, [tasks, sortBy, sortOrder])
+             if(sortBy === 'title'){
+                comparison = a.title.localeCompare(b.title);
+            } else if(sortBy === 'status'){
+                const statusOption = ["To do", "Doing", "Done"];
+                const indexA = statusOption.indexOf(a.status);
+                const indexB = statusOption.indexOf(b.status);
+                comparison = indexA - indexB;
+            } else if(sortBy === 'createdAt'){
+                const dateA= new Date(a.createdAt).getTime();
+                const dateB= new Date(b.createdAt).getTime();
+                comparison = dateA - dateB;
+            }
+
+            return comparison * sortOrder
+        });
+    }, [tasks, sortBy, sortOrder, searchQuery])
+
 
     return(
         <>
-            <table>
-                <thead>
-                    <tr>
-                        <th onClick={() => handleSort('title')}>
-                            Nome {sortIcon('title')}
-    
-                        </th>
-                        <th onClick={() => handleSort('status')}>
-                            Stato {sortIcon('status')}
-                        </th>
-                        <th onClick={() => handleSort('createdAt')}>
-                            Data di Creazione {sortIcon('createdAt')}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {sortedTask.map(task => (
-                        <TaskRow 
-                            key={task.id}
-                            task={task}
-                        />
-                    ))}
-                </tbody>
-            </table>
+        <div className="search-container">
+            <input 
+                type="text-filter" 
+                name="filtertasks"
+                onChange={(e) => debounceSetSearchQuery(e.target.value)}
+                placeholder="Cerca task..." 
+            />
+        </div>
+        
+
+        <table>
+            <thead>
+                <tr>
+                    <th onClick={() => handleSort('title')}>
+                        Nome {sortIcon('title')}
+                    </th>
+                    <th onClick={() => handleSort('status')}>
+                        Stato {sortIcon('status')}
+                    </th>
+                    <th onClick={() => handleSort('createdAt')}>
+                        Data di Creazione {sortIcon('createdAt')}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {sortedAndFilteredTask.map(task => (
+                    <TaskRow 
+                        key={task.id}
+                        task={task}
+                    />
+                ))}
+            </tbody>
+        </table>
         </>
     )
 }
 
 export default TaskList;
 
-/*
-Aggiungere due state in TaskList.jsx:
-sortBy: rappresenta il criterio di ordinamento (title, status, createdAt).
-sortOrder: rappresenta la direzione (1 per crescente, -1 per decrescente).
-Il default di sortBy è createdAt, il default di sortOrder, è 1.
-
-Modificare la tabella per rendere cliccabili le intestazioni (th), in modo che al click:
-Se la colonna è già selezionata (sortBy uguale alla colonna cliccata), invertire sortOrder.
-Se la colonna è diversa, impostare sortBy sulla nuova colonna e sortOrder su 1.
-
-Implementare la logica di ordinamento con useMemo(), in modo che l’array ordinato venga ricalcolato solo quando cambiano tasks, sortBy o sortOrder:
-Ordinamento per title → alfabetico (localeCompare).
-Ordinamento per status → ordine predefinito: "To do" < "Doing" < "Done".
-Ordinamento per createdAt → confrontando il valore numerico della data (.getTime()).
-Applicare sortOrder per definire se l’ordine è crescente o decrescente.
-
-*/
